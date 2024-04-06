@@ -1,0 +1,2 @@
+mongodb:
+  uri: "mongodb://root:M0fid@10.2.22.5:27017/?directConnection=true&authSource=admin"
