@@ -1,0 +1,49 @@
+# Example job spec. This file is safe to commit: it contains references to
+# credentials, never credentials. `migrator validate` rejects the latter.
+#
+#   export SRC_DSN='mongodb+srv://user:pass@cluster0.example.mongodb.net/sumx'
+#   export DST_DSN='postgres://user:pass@localhost:5432/warehouse'
+#   migrator validate -f examples/mongo-to-postgres.yml --resolve
+version: 1
+name: sumx-to-warehouse
+
+source:
+  dsn: ${env:SRC_DSN}
+  options:
+    read_preference: secondaryPreferred
+    sample_size: 20000
+
+sink:
+  dsn: ${env:DST_DSN}
+
+defaults:
+  mode: replace_atomic
+  batch_bytes: 4MiB
+  write_concurrency: 8
+  defer_indexes: true
+
+mapping:
+  flatten:
+    enabled: true
+    max_depth: 3
+  arrays: jsonb
+  on_type_conflict: json
+  assume_timezone: UTC
+  on_loss:
+    precision: warn
+    data: fail
+
+objects:
+  - source: sumx.orders
+    target: public.orders
+    fields:
+      total: { type: "numeric(18,4)" }
+      legacy_blob: { skip: true }
+
+  - source: sumx.sessions
+    target: public.sessions
+    mode: truncate
+
+observability:
+  dead_letter: ./out/orders.dlq.ndjson
+  max_errors: 1000

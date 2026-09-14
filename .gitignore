@@ -1,0 +1,19 @@
+# Build output
+/migrator
+/dist/
+/bin/
+
+# Local job specs and run artifacts — these reference real endpoints
+/jobs/
+*.dlq.ndjson
+*.ckpt
+/out/
+
+# Never commit resolved credentials
+.env
+.env.*
+!.env.example
+
+# Go
+*.test
+*.out
